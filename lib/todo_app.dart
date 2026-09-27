@@ -20,6 +20,12 @@ class TodoApp extends StatelessWidget {
         localizationsDelegates: context.localizationDelegates,
         supportedLocales: context.supportedLocales,
         locale: context.locale,
+        theme: ThemeData(
+
+          scaffoldBackgroundColor: Colors.white,
+
+        ),
+
         home: const LoginScreen(),
       ),
     );

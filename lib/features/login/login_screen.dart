@@ -1,8 +1,84 @@
-import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+import 'dart:io';
 
-class LoginScreen extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  File? profileImage;
+
+  Future<void> pickImage(ImageSource source) async {
+    try {
+      final picker = ImagePicker();
+
+      final XFile? image = await picker.pickImage(
+        source: source,
+        imageQuality: 80,
+      );
+
+      if (image != null) {
+        setState(() {
+          profileImage = File(image.path);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e")),
+        );
+      }
+    }
+  }
+
+  void showImageSourceSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt, color: Colors.indigo),
+                title: const Text("Camera"),
+                onTap: () {
+                  Navigator.pop(context);
+                  pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library, color: Colors.indigo),
+                title: const Text("Choose from gallery"),
+                onTap: () {
+                  Navigator.pop(context);
+                  pickImage(ImageSource.gallery);
+                },
+              ),
+              if (profileImage != null)
+                ListTile(
+                  leading: const Icon(Icons.delete, color: Colors.red),
+                  title: const Text("Remove photo"),
+                  onTap: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      profileImage = null;
+                    });
+                  },
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -10,20 +86,32 @@ class LoginScreen extends StatelessWidget {
       backgroundColor: const Color(0xffF5F6FA),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 24,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircleAvatar(
-                radius: 55,
-                backgroundColor: const Color(0xffE8EBF5),
-                child: Icon(
-                  Icons.person,
-                  size: 60,
-                  color: Colors.indigo,
+              GestureDetector(
+                onTap: showImageSourceSheet,
+                child: CircleAvatar(
+                  radius: 55,
+                  backgroundColor: const Color(0xffE8EBF5),
+                  backgroundImage:
+                  profileImage != null ? FileImage(profileImage!) : null,
+                  child: profileImage == null
+                      ? const Icon(
+                    Icons.camera_alt,
+                    size: 50,
+                    color: Colors.indigo,
+                  )
+                      : null,
                 ),
+              ),
+
+              const SizedBox(height: 12),
+
+              const Text(
+                "Tap to add photo",
+                style: TextStyle(color: Colors.grey),
               ),
 
               const SizedBox(height: 30),
@@ -63,7 +151,7 @@ class LoginScreen extends StatelessWidget {
 
               TextFormField(
                 decoration: InputDecoration(
-                  hintText: "Ahmed mohamed",
+                  hintText: "Ahmed Mohamed",
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
